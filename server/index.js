@@ -89,24 +89,29 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 
-// Recreate __dirname functionality for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Target the exact directory where Render compiles the client build
-const frontendPath = path.resolve(__dirname, '..', 'server', 'client', 'dist');
+// This accurately targets the 'client/dist' directory from within the server directory layout
+const frontendPath = path.resolve(__dirname, 'client', 'dist');
 
+// Fallback logic to check if Render workspace places client next to server
+const finalPath = fs.existsSync(frontendPath) 
+  ? frontendPath 
+  : path.resolve(__dirname, '..', 'client', 'dist');
 
-// 1. Serve static assets
-app.use(express.static(frontendPath));
+console.log("Serving production frontend assets from:", finalPath);
 
-// 2. Fallback routing for React
+// 1. Serve static production builds safely
+app.use(express.static(finalPath));
+
+// 2. Fallback client side asset routing
 app.get('*', (req, res) => {
-  const indexPath = path.join(frontendPath, 'index.html');
+  const indexPath = path.join(finalPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send("Frontend build not found. Please verify deployment build command settings.");
+    res.status(404).send("Frontend build not found. Verify deployment compilation configurations.");
   }
 });
 
