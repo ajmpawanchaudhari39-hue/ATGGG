@@ -85,6 +85,26 @@ app.use((err, req, res, next) => {
     message: process.env.NODE_ENV === 'production' ? "A critical processing error occurred." : err.message
   });
 });
+const path = require('path');
+const fs = require('fs');
+
+// Log the directory path to the Render terminal so we can debug live
+const frontendPath = path.resolve(__dirname, '..', 'client', 'dist');
+console.log("Looking for frontend files at: ", frontendPath);
+console.log("Does folder exist?: ", fs.existsSync(frontendPath));
+
+// 1. Serve static assets
+app.use(express.static(frontendPath));
+
+// 2. Fallback routing for React
+app.get('*', (req, res) => {
+  const indexPath = path.join(frontendPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).send(`Backend is running, but frontend build was not found. Checked path: ${frontendPath}`);
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`\n======================================================`);
