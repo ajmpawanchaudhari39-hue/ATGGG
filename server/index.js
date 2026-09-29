@@ -93,8 +93,9 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Target the dist folder correctly
-const frontendPath = path.resolve(__dirname, '..', 'client', 'dist');
+// Target the exact directory where Render compiles the client build
+const frontendPath = path.resolve(__dirname, '..', 'server', 'client', 'dist');
+
 
 // 1. Serve static assets
 app.use(express.static(frontendPath));
